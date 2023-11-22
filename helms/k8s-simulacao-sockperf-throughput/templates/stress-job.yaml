@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "k8s-referencia.stressJobName" . }}
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      parallelism: 1
+      initContainers:
+      - name: sockperf
+        image: {{ printf "%s:%s" .Values.image.sockperf.repository .Values.image.sockperf.version }}
+        imagePullPolicy: Always
+        args: ["throughput", {{ printf "-i=%s" (include "k8s-referencia.sockPerfServerName" .) }}, {{ printf "-t=%s" .Values.timeout }}, "--mps=max", "--tcp", "-p=5000", "--msg-size=4096", "--full-log=/mnt/log/sockperf_sim_throughput_tcp.csv"]
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 1
+            memory: 1Gi
+        volumeMounts:
+        - mountPath: "/mnt/log"
+          name: storage
+      containers:
+      - name: k8s-collector
+        image: {{ printf "%s:%s" .Values.image.k8sCollector.repository .Values.image.k8sCollector.version }}
+        imagePullPolicy: Always
+        env:
+        - name: CONNECTION_STRINGS__BLOB_STORAGE
+          value: {{ .Values.blobConnectionString }}
+        args: ["collect", "-s=/mnt/log",  {{ printf "-c=%s" .Values.blobContainerName }}]
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 1
+            memory: 1Gi
+        volumeMounts:
+        - mountPath: "/mnt/log"
+          name: storage
+      restartPolicy: OnFailure
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: {{ include "k8s-referencia.persistentVolumeClaimName" . }}
+
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.azure.com/agentpool
+            operator: In
+            values:
+            - {{ .Values.host1Name }}
