@@ -1,0 +1,19 @@
+# Default values for k8s-referencia.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namePrefix: ""
+
+image:
+  iperf3:
+    repository: mlabbe/iperf
+    version: 'latest'
+  sockperf:
+    repository: maxandriani/sockperf
+    version: '3.10'
+
+podAnnotations:
+  test-type: reference
+
+host1Name: host1
+host2Name: host2

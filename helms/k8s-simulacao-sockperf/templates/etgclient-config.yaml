@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "k8s-referencia.etgClient" . }}
+data:
+  etgConfig: |
+    server {{ .Values.etgServer }} 5000
+    req_size_dist /root/PRV2_1_CDF
+    fanout 1 100
+    load 1000Mbps
+    num_reqs 250000

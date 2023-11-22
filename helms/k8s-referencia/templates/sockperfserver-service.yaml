@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "k8s-referencia.sockPerfServerName" . }}
+  labels:
+    {{- include "k8s-referencia.labels" . | nindent 4 }}
+spec:
+  clusterIP: None # Headless
+  selector:
+    app: {{ include "k8s-referencia.sockPerfServerName" . }}
+  ports:
+  - port: 5000
+    targetPort: sockperf-server

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-referencia.sockPerfServerName" . }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "k8s-referencia.sockPerfServerName" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "k8s-referencia.sockPerfServerName" . }}
+        {{- include "k8s-referencia.labels" . | nindent 4 }}
+    spec:
+      containers:
+      - name: iperf-server
+        image: {{ printf "%s:%s" .Values.image.sockperf.repository .Values.image.sockperf.version }}
+        args: ["server", "-p=5000", "--tcp"]
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 1
+            memory: 1Gi
+        ports:
+        - containerPort: 5000
+          name: sockperf-server
+
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.azure.com/agentpool
+            operator: In
+            values:
+            - {{ .Values.host1Name }}

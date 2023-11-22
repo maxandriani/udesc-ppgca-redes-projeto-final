@@ -1,0 +1,34 @@
+# Default values for k8s-referencia.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namePrefix: ""
+timeout: '120'
+blobContainerName: "k8s-referencia-vlan"
+blobConnectionString: "DefaultEndpointsProtocol=https;AccountName=k8sresults;AccountKey=lNeQT27ul3bJyLMzjwFxBVnsGiPcfieikLhiOx2z1LIWV9y+mOUWEsbEIGWYK9Z09cm6o4eWHSAU+AStQx4tLg==;EndpointSuffix=core.windows.net"
+
+image:
+  sockperf:
+    repository: maxandriani/sockperf
+    version: '3.10'
+  k8sCollector:
+    repository: maxandriani/k8s-collector
+    version: '1.0.0'
+
+iperfEndpoint: 'k8s-iperf-server'
+iperfPort: '5000'
+
+podAnnotations:
+  test-type: reference
+
+storageClassName: managed-csi
+
+affinity:
+  nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.azure.com/agentpool
+            operator: In
+            values:
+            - nodepool1
